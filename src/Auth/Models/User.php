@@ -138,10 +138,31 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
     // Events
     //
 
+
+    /**
+     * Before the user is registered
+     */
+    public function beforeRegister()
+    {
+    }
+
+    /**
+     * After the user is registered
+     */
+    public function afterRegister()
+    {
+    }
+
+    /**
+     * Before the user logs in
+     */
     public function beforeLogin()
     {
     }
 
+    /**
+     * After the user logs in
+     */
     public function afterLogin()
     {
         $this->last_login = $this->freshTimestamp();
@@ -149,11 +170,157 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
     }
 
     /**
-     * Delete the user groups
+     * Before the user logs out
+     */
+    public function beforeLogout()
+    {
+    }
+
+    /**
+     * After the user logs out
+     */
+    public function afterLogout()
+    {
+    }
+
+    /**
+     * Before the user is activated
+     *
+     * @param [string] $activationCode
+     * @return void
+     */
+    public function beforeActivate($activationCode)
+    {
+    }
+
+    /**
+     * After the user is activated
+     *
+     * @param [string] $activationCode
+     * @return void
+     */
+    public function afterActivate($activationCode)
+    {
+    }
+
+    /**
+     * Before the user resets their password
+     *
+     * @param [string] $resetCode
+     * @param [string] $newPassword
+     * @return void
+     */
+    public function beforeResetPassword($resetCode, $newPassword)
+    {
+    }
+
+    /**
+     * After the user resets their password
+     *
+     * @return void
+     */
+    public function afterResetPassword()
+    {
+    }
+
+    /**
+     * Before user impersonation begins
+     */
+    public function beforeImpersonate($impersonator)
+    {
+    }
+
+    /**
+     * After user impersonation has begun
+     */
+    public function afterImpersonate($impersonator)
+    {
+    }
+
+    /**
+     * Before user impersonation ends
+     */
+    public function beforeEndImpersonation($impersonator)
+    {
+    }
+
+    /**
+     * After user impersonation ends
+     */
+    public function afterEndImpersonation($impersonator)
+    {
+    }
+
+    /**
+     * Before a user is suspended
+     */
+    public function beforeSuspend()
+    {
+    }
+
+    /**
+     * After a user is suspended
+     */
+    public function afterSuspend()
+    {
+    }
+
+    /**
+     * Before a user suspend is removed
+     */
+    public function beforeUnsuspend()
+    {
+    }
+
+    /**
+     * After a user suspend is removed
+     */
+    public function afterUnsuspend()
+    {
+    }
+
+    /**
+     * Before a user is banned
+     */
+    public function beforeBan()
+    {
+    }
+
+    /**
+     * After a user is banned
+     */
+    public function afterBan()
+    {
+    }
+
+    /**
+     * Before a user ban is removed
+     */
+    public function beforeUnban()
+    {
+    }
+
+    /**
+     * After a user ban is removed
+     */
+    public function afterUnban()
+    {
+    }
+
+    /**
+     * Before the user is deleted
+     */
+    public function beforeDelete()
+    {
+    }
+
+    /**
+     * After the user has been deleted
      * @return bool
      */
     public function afterDelete()
     {
+        // Delete the user groups
         if ($this->hasRelation('groups')) {
             $this->groups()->detach();
         }
