@@ -141,6 +141,7 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
 
     /**
      * Before the user is registered
+     * @return bool
      */
     public function beforeRegister()
     {
@@ -155,6 +156,7 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
 
     /**
      * Before the user logs in
+     * @return bool
      */
     public function beforeLogin()
     {
@@ -171,6 +173,7 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
 
     /**
      * Before the user logs out
+     * @return bool
      */
     public function beforeLogout()
     {
@@ -187,7 +190,7 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
      * Before the user is activated
      *
      * @param [string] $activationCode
-     * @return void
+     * @return bool
      */
     public function beforeActivate($activationCode)
     {
@@ -204,11 +207,51 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
     }
 
     /**
+     * Before the user is deactivated
+     *
+     * @param [string] $activationCode
+     * @return bool
+     */
+    public function beforeDeactivate()
+    {
+    }
+
+    /**
+     * After the user is deactivated
+     *
+     * @param [string] $activationCode
+     * @return void
+     */
+    public function afterDeactivate()
+    {
+    }
+
+    /**
+     * Before the user is reactivated
+     *
+     * @param [string] $activationCode
+     * @return bool
+     */
+    public function beforeReactivate($activationCode)
+    {
+    }
+
+    /**
+     * After the user is reactivated
+     *
+     * @param [string] $activationCode
+     * @return void
+     */
+    public function afterReactivate($activationCode)
+    {
+    }
+
+    /**
      * Before the user resets their password
      *
      * @param [string] $resetCode
      * @param [string] $newPassword
-     * @return void
+     * @return bool
      */
     public function beforeResetPassword($resetCode, $newPassword)
     {
@@ -225,6 +268,7 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
 
     /**
      * Before user impersonation begins
+     * @return bool
      */
     public function beforeImpersonate($impersonator)
     {
@@ -239,13 +283,22 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
 
     /**
      * Before user impersonation ends
+     * @return bool
      */
     public function beforeEndImpersonation($impersonator)
     {
     }
 
     /**
-     * After user impersonation ends
+     * Called after the user in question has stopped being impersonated. Current user is false when
+     * either the system or a user from a separate authentication system authorized the impersonation.
+     *
+     * Example usage:
+     *
+     *     public function afterEndImpersonation($impersonator) {
+     *         \Log::info($impersonator->full_name . ' has stopped impersonating ' . $this->full_name);
+     *     });
+     *
      */
     public function afterEndImpersonation($impersonator)
     {
@@ -253,6 +306,7 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
 
     /**
      * Before a user is suspended
+     * @return bool
      */
     public function beforeSuspend()
     {
@@ -267,6 +321,7 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
 
     /**
      * Before a user suspend is removed
+     * @return bool
      */
     public function beforeUnsuspend()
     {
@@ -281,6 +336,7 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
 
     /**
      * Before a user is banned
+     * @return bool
      */
     public function beforeBan()
     {
@@ -295,6 +351,7 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
 
     /**
      * Before a user ban is removed
+     * @return bool
      */
     public function beforeUnban()
     {
@@ -309,6 +366,7 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
 
     /**
      * Before the user is deleted
+     * @return bool
      */
     public function beforeDelete()
     {
@@ -398,11 +456,18 @@ class User extends Model implements \Illuminate\Contracts\Auth\Authenticatable
             throw new Exception('User is already active!');
         }
 
+        // Fire the beforeActivate event
+        $this->beforeActivate($activationCode);
+
         if ($activationCode === $this->activation_code) {
             $this->activation_code = null;
             $this->is_activated = true;
             $this->activated_at = $this->freshTimestamp();
             $this->forceSave();
+
+            // Fire the afterActivate event
+            $this->afterActivate($activationCode);
+
             return true;
         }
 

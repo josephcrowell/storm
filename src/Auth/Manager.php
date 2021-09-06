@@ -631,9 +631,7 @@ class Manager implements \Illuminate\Contracts\Auth\StatefulGuard
             $this->setPersistCodeInSession($user, $remember);
         }
 
-        /*
-         * Fire the 'afterLogin' event
-         */
+        // Fire the 'afterLogin' event
         $user->afterLogin();
     }
 
@@ -716,26 +714,8 @@ class Manager implements \Illuminate\Contracts\Auth\StatefulGuard
             $impersonator = $impersonatorId ? $this->findUserById($impersonatorId) : false;
         }
 
-        /**
-         * @event model.auth.beforeImpersonate
-         * Called before the user in question is impersonated. Current user is false when either the system or a
-         * user from a separate authentication system authorized the impersonation. Use this to override the results
-         * of `$user->canBeImpersonated()` if desired.
-         *
-         * Example usage:
-         *
-         *     $model->bindEvent('model.auth.beforeImpersonate', function (\Winter\Storm\Auth\Models\User|false $impersonator) use (\Winter\Storm\Models\Auth\User $model) {
-         *         \Log::info($impersonator->full_name . ' is attempting to impersonate ' . $model->full_name);
-         *
-         *         // Ignore the results of $model->canBeImpersonated() and grant impersonation access
-         *         // return true;
-         *
-         *         // Ignore the results of $model->canBeImpersonated() and deny impersonation access
-         *         // return false;
-         *     });
-         *
-         */
-        $canImpersonate = $impersonatee->fireEvent('model.auth.beforeImpersonate', [$impersonator], true);
+        // Call beforeImpersonate event in the user model
+        $canImpersonate = $impersonatee->beforeImpersonate($impersonator);
         if (is_null($canImpersonate)) {
             $canImpersonate = $impersonatee->canBeImpersonated($impersonator);
         }
@@ -754,6 +734,9 @@ class Manager implements \Illuminate\Contracts\Auth\StatefulGuard
         if (!$this->isImpersonator()) {
             Session::put($this->sessionKey . '_impersonator', $impersonatorId ?: false);
         }
+
+        // Call afterImpersonate event in the user model
+        $impersonatee->afterImpersonate($impersonator);
     }
 
     /**
@@ -768,19 +751,8 @@ class Manager implements \Illuminate\Contracts\Auth\StatefulGuard
         $impersonator = $this->getImpersonator();
 
         if ($impersonateeId && ($impersonatee = $this->findUserById($impersonateeId))) {
-            /**
-             * @event model.auth.afterImpersonate
-             * Called after the user in question has stopped being impersonated. Current user is false when
-             * either the system or a user from a separate authentication system authorized the impersonation.
-             *
-             * Example usage:
-             *
-             *     $model->bindEvent('model.auth.afterImpersonate', function (\Winter\Storm\Auth\Models\User|false $impersonator) use (\Winter\Storm\Auth\Models\User $model) {
-             *         \Log::info($impersonator->full_name . ' has stopped impersonating ' . $model->full_name);
-             *     });
-             *
-             */
-            $impersonatee->fireEvent('model.auth.afterImpersonate', [$impersonator]);
+            // Call afterEndImpersonate event in the user model
+            $impersonatee->beforeEndImpersonate($impersonator);
         }
 
         // Restore the session to the impersonator if possible
@@ -798,6 +770,11 @@ class Manager implements \Illuminate\Contracts\Auth\StatefulGuard
 
         // Remove the impersonator flag
         Session::forget($this->sessionKey . '_impersonator');
+
+        if ($impersonateeId && ($impersonatee = $this->findUserById($impersonateeId))) {
+            // Call afterEndImpersonate event in the user model
+            $impersonatee->afterEndImpersonate($impersonator);
+        }
     }
 
     /**
